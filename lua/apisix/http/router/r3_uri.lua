@@ -10,12 +10,11 @@ local error = error
 local user_routes
 local cached_version
 
+local _M = { version = 0.1 }
 
-local _M = {version = 0.1}
+local uri_routes = {}
+local uri_router
 
-
-    local uri_routes = {}
-    local uri_router
 local function create_r3_router(routes)
     routes = routes or {}
 
@@ -38,7 +37,7 @@ local function create_r3_router(routes)
                 path = route.value.uri,
                 method = route.value.methods,
                 host = route.value.host,
-                handler = function (params, api_ctx)
+                handler = function(params, api_ctx)
                     --[[
                         If you need to get the parameters, you need to replace the first parameter
                         nil of dispatch2 with an empty table and open the following comment, but
@@ -56,8 +55,7 @@ local function create_r3_router(routes)
     uri_router:compile()
 end
 
-
-    local match_opts = {}
+local match_opts = {}
 function _M.match(api_ctx)
     if not cached_version or cached_version ~= user_routes.conf_version then
         create_r3_router(user_routes.values)
@@ -83,7 +81,6 @@ function _M.match(api_ctx)
     return true
 end
 
-
 function _M.routes()
     if not user_routes then
         return nil, nil
@@ -92,18 +89,16 @@ function _M.routes()
     return user_routes.values, user_routes.conf_version
 end
 
-
 function _M.init_worker(filter)
     local err
     user_routes, err = core.config.new("/routes", {
-            automatic = true,
-            item_schema = core.schema.route,
-            filter = filter,
-        })
+        automatic = true,
+        item_schema = core.schema.route,
+        filter = filter,
+    })
     if not user_routes then
         error("failed to create etcd instance for fetching /routes : " .. err)
     end
 end
-
 
 return _M
